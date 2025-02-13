@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>极简数字时钟</title>
+    <style>
+        /* 全局重置样式，去除可能的默认外边距和内边距 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            /* 将背景颜色修改为黑色 */
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            /* 修改字体为 Microsoft JhengHei UI */
+            font-family: "Microsoft JhengHei UI", monospace;
+            /* 字体加粗 */
+            font-weight: bold;
+            position: relative;
+        }
+
+       .digital-clock {
+            /* 移除背景色 */
+            background: none;
+            /* 移除内边距 */
+            padding: 0;
+            /* 移除阴影 */
+            box-shadow: none;
+        }
+
+       .time {
+            color: #cccccc;
+            font-size: 550px;
+            display: flex;
+            gap: 50px;
+            font-weight: 900;
+            align-items: center;
+            justify-content: center;
+        }
+
+       .hours,
+       .minutes {
+            border: 3px solid #181818;
+            border-radius: 20px;
+            padding: 0 30px;
+            background: #181818;
+            display: inline-block;
+            position: relative;
+            perspective: 1000px;
+            text-align: center;
+            overflow: hidden;
+            -webkit-user-select: none; /* Safari */
+            -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* IE10+ */
+            user-select: none; /* 标准语法 */
+        }
+
+       .hours::after,
+       .minutes::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: #000;
+            transform: translateY(-50%);
+        }
+
+        body::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background-color: #000;
+            transform: translateY(-50%);
+        }
+
+       .flip {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            overflow: hidden;
+            backface-visibility: hidden;
+            transform-origin: bottom;
+        }
+
+       .flip-top {
+            background: #181818;
+            z-index: 2;
+        }
+
+       .flip-bottom {
+            background: #181818;
+            top: 50%;
+            z-index: 1;
+            transform-origin: top;
+            transform: rotateX(90deg);
+        }
+
+       .flipping .flip-top {
+            animation: flipTop 0.3s ease-in;
+        }
+
+       .flipping .flip-bottom {
+            animation: flipBottom 0.3s ease-out 0.3s;
+            animation-fill-mode: forwards;
+        }
+
+        @keyframes flipTop {
+            from {
+                transform: rotateX(0deg);
+            }
+            to {
+                transform: rotateX(-90deg);
+            }
+        }
+
+        @keyframes flipBottom {
+            from {
+                transform: rotateX(90deg);
+            }
+            to {
+                transform: rotateX(0deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="digital-clock">
+        <div class="time" id="time">
+            <div class="hours">
+                <span class="hours-current">00</span>
+                <div class="flip flip-top">
+                    <span class="hours-next">00</span>
+                </div>
+                <div class="flip flip-bottom">
+                    <span class="hours-next">00</span>
+                </div>
+            </div>
+            <div class="minutes">
+                <span class="minutes-current">00</span>
+                <div class="flip flip-top">
+                    <span class="minutes-next">00</span>
+                </div>
+                <div class="flip flip-bottom">
+                    <span class="minutes-next">00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let prevHours = -1;
+        let prevMinutes = -1;
+
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+
+            const hoursElement = document.querySelector('.hours');
+            const minutesElement = document.querySelector('.minutes');
+
+            const hoursCurrent = document.querySelector('.hours-current');
+            const hoursNext = document.querySelectorAll('.hours-next');
+            const minutesCurrent = document.querySelector('.minutes-current');
+            const minutesNext = document.querySelectorAll('.minutes-next');
+
+            if (hours!== prevHours) {
+                hoursNext.forEach(span => span.textContent = hours);
+                hoursElement.classList.add('flipping');
+                const handleHoursAnimationEnd = () => {
+                    hoursCurrent.textContent = hours;
+                    hoursElement.classList.remove('flipping');
+                    hoursElement.removeEventListener('animationend', handleHoursAnimationEnd);
+                };
+                hoursElement.addEventListener('animationend', handleHoursAnimationEnd);
+                prevHours = hours;
+            }
+
+            if (minutes!== prevMinutes) {
+                minutesNext.forEach(span => span.textContent = minutes);
+                minutesElement.classList.add('flipping');
+                const handleMinutesAnimationEnd = () => {
+                    minutesCurrent.textContent = minutes;
+                    minutesElement.classList.remove('flipping');
+                    minutesElement.removeEventListener('animationend', handleMinutesAnimationEnd);
+                };
+                minutesElement.addEventListener('animationend', handleMinutesAnimationEnd);
+                prevMinutes = minutes;
+            }
+        }
+
+        // 每秒更新一次时间
+        setInterval(updateTime, 1000);
+        // 页面加载时立即更新一次时间
+        updateTime();
+    </script>
+</body>
+
+</html>
